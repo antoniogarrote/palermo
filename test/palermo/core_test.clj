@@ -2,6 +2,6 @@
   (:require [clojure.test :refer :all]
             [palermo.core :refer :all]))
 
-(deftest a-test
-  (testing "FIXME, I fail."
-    (is (= 0 1))))
+(deftest test-marker
+  (testing "just a place holder for a test"
+    (is (= true true))))
