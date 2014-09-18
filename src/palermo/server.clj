@@ -11,8 +11,9 @@
                    [] []}
     :methods [[show [] clojure.lang.PersistentArrayMap]
               [enqueue [String java.lang.Class Object] void]
-              [startWorker ["[Ljava.lang.String;"] void]
-              [worker [clojure.lang.PersistentVector] void]
+              [startWorker ["[Ljava.lang.String;"] String]
+              [stopWorker [String] void]
+              [workers [] "[Ljava.lang.String;"]
               [setSerialization [String] void]
               [getSerialization [] String]]
     :state state))
@@ -28,25 +29,25 @@
            (atom {:connection connection
                   :exchange "palermo"
                   :serialization "application/json"
-                  :consumers []}))])
+                  :consumers {}}))])
   ([exchange] 
      [[] (let [connection (connect {:host "localhost" :port 5672 :username "guest" :password "guest"})]
            (atom {:connection connection
                   :exchange exchange
                   :serialization "application/json"
-                  :consumers []}))])
+                  :consumers {}}))])
   ([host port username password exchange]
      [[] (let [connection (connect {:host host :port port :username username :password password})]
            (atom {:connection connection
                   :exchange exchange
                   :serialization "application/json"
-                  :consumers []}))])
+                  :consumers {}}))])
   ([host port exchange]
      [[] (let [connection (connect {:host host :port port :username "guest" :password "guest"})]
            (atom {:connection connection
                   :exchange exchange
                   :serialization "application/json"
-                  :consumers []}))]))
+                  :consumers {}}))]))
 
 (defn -setSerialization [this serialization]
   (swap! (.state this) assoc :serialization serialization))
@@ -63,20 +64,29 @@
     (prabbit/publish-job-messages ch exchange-name queue job-message)))
 
 (defn -startWorker [this queues]
-  (let [channel (prabbit/channel (:connection (deref (.state this))))
+  (let [worker-id (str (java.util.UUID/randomUUID))
+        channel (prabbit/channel (:connection (deref (.state this))))
         exchange-name (:exchange (deref (.state this)))
-        new-workers (pworker/start-worker channel exchange-name queues)
+        worker-tags (pworker/start-worker channel exchange-name queues)
         old-workers (:workers (deref (.state this)))]
-    (swap! (.state this) assoc :workers (concat old-workers new-workers))))
+    (swap! (.state this) assoc :workers (assoc old-workers worker-id {:channel channel
+                                                                      :tags worker-tags}))
+    worker-id))
 
-(defn -worker [this queues]
-  (-startWorker [this (into-array String queues)]))
 
+(defn -workers [this]
+  (let [workers (:workers (deref (.state this)))]
+    (into-array String (keys workers))))
 
+(defn -stopWorker [this worker-id]
+  (let [workers (:workers (deref (.state this)))
+        worker-info (get  workers worker-id)
+        tags (:tags worker-info)
+        channel (:channel worker-info)]
+    (doseq [tag tags] (prabbit/cancel-subscriber channel tag))
+    (try (prabbit/close-channel channel)
+         (catch Exception e nil))
+    (swap! (.state this) assoc :workers (dissoc workers worker-id))))
+  
 (defn -show [this]
   (deref (.state this)))
-
-
-
-
-;; (def pal (new palermo.server "a" (int 1) "b" "c" "d"))

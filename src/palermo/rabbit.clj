@@ -20,6 +20,16 @@
   [connection]
   (lchannel/open connection))
 
+(defn close-channel
+  "Closes a RabbitMQ channel"
+  [channel]
+  (rmq/close channel))
+
+(defn cancel-subscriber
+  "Cancels a subscriber provided a channel and consumer-tag"
+  [channel consumer-tag]
+  (lbasic/cancel channel consumer-tag))
+
 (defn consume-job-messages
   "Starts a consumer attached to a queue and bound to a a certain topic"
   ([ch exchange-name queue-name handler]

@@ -9,22 +9,24 @@
   "Instantiates a new instance of a java class using the default
    constructor"
   [class-name]
-  (let [klass (java.lang.Class/forName class-name)
+  (let [klass (if (string? class-name)
+                (java.lang.Class/forName class-name)
+                class-name)
         constructor (.getConstructor klass (into-array Class []))]
     (.newInstance constructor (into-array Object []))))
 
 (defn worker-handler
   "Handles a new job message received from RabbitQM"
-  [{:keys [type job-class arguments headers]}]
+  [{:keys [type job-class content  headers]}]
   (let [job (instantiate job-class)]
-    (pjob/process job arguments)))
+    (pjob/process job content)))
 
-(defn error-handler
+(defn worker-error-handler
   "Generates an error handler that re-enqueue a failed job into the 
    failed queue"
   [channel exchange-name]
   (fn [exception metadata payload]
-    (let [exception-message (.getMessages exception)
+    (let [exception-message (.getMessage exception)
           stack-trace (map (fn [trace] (.toString trace))
                            (.getStackTrace exception))
           stack-trace (clojure.string/join "\n" stack-trace)
@@ -40,12 +42,15 @@
 (defn start-worker
   "Starts the execution of a new Palermo worker"
   [channel exchange-name queues]
-  (map 
-   (fn [queue]
-     (prabbit/consume-job-messages
-      channel
-      exchange-name
-      queue
-      worker-handler
-      (error-handler channel exchange-name)))
-   queues))
+  (let [tags (map 
+              (fn [queue]
+                (prabbit/consume-job-messages
+                 channel
+                 exchange-name
+                 queue
+                 worker-handler
+                 (worker-error-handler channel exchange-name)))
+              (vec queues))]
+    ;; trigger map function
+    (doseq [tag tags] tag)
+    tags))
