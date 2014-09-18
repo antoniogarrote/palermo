@@ -20,17 +20,34 @@
   [connection]
   (lchannel/open connection))
 
+(defn instantiate [class-name]
+  (let [klass (java.lang.Class/forName class-name)
+        constructor (.getConstructor klass (into-array Class []))]
+    (.newInstance constructor (into-array Object []))))
 
-(defn consume
+(defn consume-job-messages
   "Starts a consumer attached to a queue and bound to a a certain topic"
   [ch exchange-name queue-name handler]
   (let [topic-name queue-name
         data-handler    (fn [ch metadata ^bytes payload]
                           (try  
                             (let [media-type (:content-type metadata)
+                                  message-id (:message-id metadata)
+                                  headers (clojure.walk/keywordize-keys
+                                           (into {} (for [[k v] (:headers metadata)]
+                                                      [k (if(= (class v) 
+                                                            com.rabbitmq.client.impl.LongStringHelper$ByteArrayLongString)
+                                                           (.toString v)
+                                                           v)])))
+                                  job-class (java.lang.Class/forName (:job-class headers))
+                                  headers (dissoc headers :job-class)
+                                  headers (if (nil? message-id)
+                                            headers
+                                            (assoc headers :id message-id))
                                   serialiser (pserialisation/make-serialiser media-type)
                                   content (pserialisation/read serialiser payload)
-                                  job-message (pjob/job-message media-type content metadata)]
+                                  job-message (pjob/make-job-message media-type job-class 
+                                                                     content headers)]
                               (handler job-message))
                             (catch Exception e
                               (println (.getMessage e)))))]
@@ -41,7 +58,7 @@
 
 
 
-(defn publish
+(defn publish-job-messages
   "Publish a message to a particular exchange and topic performing serialisation according to message type"
   [ch exchange-name topic-name job-message]
   (lexchange/declare ch exchange-name "direct")
@@ -49,7 +66,12 @@
   (lqueue/bind    ch topic-name exchange-name {:routing-key topic-name})
   (let [serialiser (pserialisation/make-serialiser (:type job-message))
         media-type (pserialisation/media-type serialiser)
-        headers (assoc (:headers job-message) :content-type media-type)
+        job-class (.getName (:job-class job-message))
+        message-id (or (:id (:headers job-message)) (str (java.util.UUID/randomUUID)))
+        headers (assoc (:headers job-message) :job-class job-class)
+        headers (clojure.walk/stringify-keys headers)
         content (pserialisation/write serialiser (:content job-message))]
-    (lbasic/publish ch exchange-name topic-name content {:content-type "application/json"})))
-
+    (lbasic/publish ch exchange-name topic-name content {:content-type "application/json"
+                                                         :persistent true
+                                                         :message-id message-id
+                                                         :headers headers})))
