@@ -30,6 +30,17 @@
   [channel consumer-tag]
   (lbasic/cancel channel consumer-tag))
 
+(defn process-headers
+  "Process the incoming RabbitMQ headers to produce a
+   key indexed Clojure map"
+  [headers]
+  (clojure.walk/keywordize-keys
+   (into {} (for [[k v] headers]
+              [k (if(= (class v) 
+                       com.rabbitmq.client.impl.LongStringHelper$ByteArrayLongString)
+                   (.toString v)
+                   v)]))))
+
 (defn consume-job-messages
   "Starts a consumer attached to a queue and bound to a a certain topic"
   ([ch exchange-name queue-name handler]
@@ -40,12 +51,7 @@
                              (try  
                                (let [media-type (:content-type metadata)
                                      message-id (:message-id metadata)
-                                     headers (clojure.walk/keywordize-keys
-                                              (into {} (for [[k v] (:headers metadata)]
-                                                         [k (if(= (class v) 
-                                                                  com.rabbitmq.client.impl.LongStringHelper$ByteArrayLongString)
-                                                              (.toString v)
-                                                              v)])))
+                                     headers (process-headers (:headers metadata))
                                      job-class (java.lang.Class/forName (:job-class headers))
                                      headers (dissoc headers :job-class)
                                      headers (if (nil? message-id)

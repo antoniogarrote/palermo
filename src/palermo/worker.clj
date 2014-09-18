@@ -26,12 +26,13 @@
    failed queue"
   [channel exchange-name]
   (fn [exception metadata payload]
-    (let [exception-message (.getMessage exception)
+    (let [_ (println (str "ERROR " metadata " - " payload))
+          exception-message (.getMessage exception)
           stack-trace (map (fn [trace] (.toString trace))
                            (.getStackTrace exception))
           stack-trace (clojure.string/join "\n" stack-trace)
           type (:content-type metadata)
-          headers (:headers metadata)
+          headers (prabbit/process-headers (:headers metadata))
           job-class (:job-class headers)
           error-job-message (pjob/make-job-message type job-class payload headers)]
       (prabbit/publish-job-messages channel 
