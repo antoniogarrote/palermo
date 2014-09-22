@@ -2,14 +2,14 @@
   (:require [clojure.data.json :as json]))
 
 (defprotocol JobSerialiser
-  (write [s message])
-  (read [s message])
+  (write-data [s message])
+  (read-data [s message])
   (media-type [s]))
 
 (deftype JsonJobSerialiser []
   palermo.serialisation.JobSerialiser
-  (write [s message] (json/write-str message))
-  (read [s message] (json/read-str (String. message)))
+  (write-data [s message] (json/write-str message))
+  (read-data [s message] (json/read-str (String. message)))
   (media-type [s] "application/json"))
 
 (defmulti make-serialiser identity)

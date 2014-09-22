@@ -41,10 +41,26 @@
                    (.toString v)
                    v)]))))
 
+(defn pipe-message
+  "Redirects a message to another queue"
+  [channel exchange-name topic-name payload metadata]
+  (println "piping...")
+  (lexchange/declare channel exchange-name "direct")
+  (lqueue/declare channel topic-name {:exclusive false :auto-delete false})
+  (lqueue/bind    channel topic-name exchange-name {:routing-key topic-name})
+  (println "about to pipe...")
+  (lbasic/publish channel exchange-name topic-name payload metadata))
+
+
 (defn consume-job-messages
   "Starts a consumer attached to a queue and bound to a a certain topic"
   ([ch exchange-name queue-name handler]
-     (consume-job-messages ch exchange-name queue-name handler #(println %)))
+     (consume-job-messages ch exchange-name queue-name handler 
+                           (fn [e metadata payload]
+                             (println e)
+                             (println (.getMessage e))
+                             (println metadata)
+                             (println payload))))
   ([ch exchange-name queue-name handler error-handler]
      (let [topic-name queue-name
            data-handler    (fn [ch metadata ^bytes payload]
@@ -58,9 +74,10 @@
                                                headers
                                                (assoc headers :id message-id))
                                      serialiser (pserialisation/make-serialiser media-type)
-                                     content (pserialisation/read serialiser payload)
+                                     content (pserialisation/read-data serialiser payload)
                                      job-message (pjob/make-job-message media-type job-class 
                                                                         content headers)]
+
                                  (handler job-message))
                                (catch Exception e
                                  (error-handler e metadata payload))))]
@@ -85,7 +102,7 @@
         headers (assoc (:headers job-message) :job-class job-class)
         headers (assoc headers :id message-id)
         headers (clojure.walk/stringify-keys headers)
-        content (pserialisation/write serialiser (:content job-message))]
+        content (pserialisation/write-data serialiser (:content job-message))]
     (lbasic/publish ch exchange-name topic-name content {:content-type "application/json"
                                                          :persistent true
                                                          :message-id message-id

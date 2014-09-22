@@ -10,7 +10,8 @@
       :content content
       :headers headers})
   ([type job-class content key & headers]
-     (make-job-message type job-class content (cons key headers))))
+     (make-job-message type job-class content 
+                       (apply hash-map (cons key headers)))))
 
 (defprotocol PalermoJob
   (process [j args]))

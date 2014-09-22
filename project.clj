@@ -1,5 +1,5 @@
 (defproject palermo "0.1.0-SNAPSHOT"
-  :description "FIXME: write description"
+  :description "Palermo, a job processing system built with love"
   :url "http://example.com/FIXME"
   :license {:name "Eclipse Public License"
             :url "http://www.eclipse.org/legal/epl-v10.html"}

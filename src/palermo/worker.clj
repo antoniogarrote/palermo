@@ -35,10 +35,14 @@
           headers (prabbit/process-headers (:headers metadata))
           job-class (:job-class headers)
           error-job-message (pjob/make-job-message type job-class payload headers)]
-      (prabbit/publish-job-messages channel 
-                                    exchange-name 
-                                    FAILED_QUEUE 
-                                    error-job-message))))
+      (prabbit/pipe-message channel 
+                            exchange-name 
+                            FAILED_QUEUE 
+                            payload 
+                            {:content-type type
+                             :persistent true
+                             :headers (clojure.walk/stringify-keys headers)
+                             :message-id (:id headers)}))))
 
 (defn start-worker
   "Starts the execution of a new Palermo worker"
