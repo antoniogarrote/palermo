@@ -44,11 +44,9 @@
 (defn pipe-message
   "Redirects a message to another queue"
   [channel exchange-name topic-name payload metadata]
-  (println "piping...")
   (lexchange/declare channel exchange-name "direct")
   (lqueue/declare channel topic-name {:exclusive false :auto-delete false})
   (lqueue/bind    channel topic-name exchange-name {:routing-key topic-name})
-  (println "about to pipe...")
   (lbasic/publish channel exchange-name topic-name payload metadata))
 
 
@@ -77,7 +75,6 @@
                                      content (pserialisation/read-data serialiser payload)
                                      job-message (pjob/make-job-message media-type job-class 
                                                                         content headers)]
-
                                  (handler job-message))
                                (catch Exception e
                                  (error-handler e metadata payload))))]
