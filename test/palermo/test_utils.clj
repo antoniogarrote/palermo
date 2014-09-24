@@ -5,7 +5,8 @@
   {:host "localhost" 
    :port 5672
    :username "guest"
-   :password "guest"})
+   :password "guest"
+   :vhost "/"})
 
 (println (str  "\n\n\n*** USING TEST RABBITMQ SERVER ***\n"
                *test-rabbit*
@@ -15,4 +16,5 @@
   (connect (:host *test-rabbit*)
            (:port *test-rabbit*)
            (:username *test-rabbit*)
-           (:password *test-rabbit*)))
+           (:password *test-rabbit*)
+           (:vhost *test-rabbit*)))

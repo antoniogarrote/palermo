@@ -10,8 +10,8 @@
 
 (defn connect
   "Connects to the RabbitMQ broker"
-  ([host port username password]
-     (rmq/connect {:host host :port port :username username :password password}))
+  ([host port username password vhost]
+     (rmq/connect {:host host :port port :username username :password password :vhost vhost}))
   ([]
      (rmq/connect)))
 

@@ -5,7 +5,7 @@
   (:gen-class
     :init init
     :name palermo.Server
-    :constructors {[String Integer String String String] []
+    :constructors {[String Integer String String String String] []
                    [String Integer String] []
                    [String] []
                    [] []}
@@ -20,31 +20,35 @@
 
 (defn connect 
   "Establish a connection to RabbitMQ"
-  [{:keys [host port username password exchange]}]
-  (prabbit/connect host port username password))
+  [{:keys [host port username password exchange vhost]}]
+  (prabbit/connect host port username password vhost))
 
 (defn -init 
   ([]
-     [[] (let [connection (connect {:host "localhost" :port 5672 :username "guest" :password "guest"})]
+     [[] (let [connection (connect {:host "localhost" :port 5672 :username "guest" :password "guest" :vhost "/"})]
            (atom {:connection connection
+                  :vhost "/"
                   :exchange "palermo"
                   :serialization "application/json"
                   :consumers {}}))])
   ([exchange] 
-     [[] (let [connection (connect {:host "localhost" :port 5672 :username "guest" :password "guest"})]
+     [[] (let [connection (connect {:host "localhost" :port 5672 :username "guest" :password "guest" :vhost "/"})]
            (atom {:connection connection
+                  :vhost "/"
                   :exchange exchange
                   :serialization "application/json"
                   :consumers {}}))])
-  ([host port username password exchange]
-     [[] (let [connection (connect {:host host :port port :username username :password password})]
+  ([host port username password exchange vhost]
+     [[] (let [connection (connect {:host host :port port :username username :password password :vhost vhost})]
            (atom {:connection connection
+                  :vhost vhost
                   :exchange exchange
                   :serialization "application/json"
                   :consumers {}}))])
   ([host port exchange]
-     [[] (let [connection (connect {:host host :port port :username "guest" :password "guest"})]
+     [[] (let [connection (connect {:host host :port port :username "guest" :password "guest" :vhost "/"})]
            (atom {:connection connection
+                  :vhost "/"
                   :exchange exchange
                   :serialization "application/json"
                   :consumers {}}))]))
