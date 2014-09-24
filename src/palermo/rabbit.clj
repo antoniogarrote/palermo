@@ -41,11 +41,21 @@
                    (.toString v)
                    v)]))))
 
+(defn exchange 
+  "Declares a new durable direct exchange"
+  [channel exchange-name]
+  (lexchange/declare channel exchange-name "direct" {:durable true}))
+
+(defn queue
+  "Declares a durable queue"
+  [channel queue-name]
+  (lqueue/declare channel queue-name {:exclusive false :auto-delete false :durable true}))
+
 (defn pipe-message
   "Redirects a message to another queue"
   [channel exchange-name topic-name payload metadata]
-  (lexchange/declare channel exchange-name "direct")
-  (lqueue/declare channel topic-name {:exclusive false :auto-delete false})
+  (exchange channel exchange-name)
+  (queue channel topic-name)
   (lqueue/bind    channel topic-name exchange-name {:routing-key topic-name})
   (lbasic/publish channel exchange-name topic-name payload metadata))
 
@@ -78,8 +88,8 @@
                                  (handler job-message))
                                (catch Exception e
                                  (error-handler e metadata payload))))]
-       (lexchange/declare ch exchange-name "direct")
-       (lqueue/declare ch queue-name {:exclusive false :auto-delete false})
+       (exchange ch exchange-name)
+       (queue ch queue-name)
        (lqueue/bind    ch queue-name exchange-name {:routing-key topic-name})
        (lconsumers/subscribe ch queue-name data-handler {:auto-ack true}))))
 
@@ -87,8 +97,8 @@
 (defn publish-job-messages
   "Publish a message to a particular exchange and topic performing serialisation according to message type"
   [ch exchange-name topic-name job-message]
-  (lexchange/declare ch exchange-name "direct")
-  (lqueue/declare ch topic-name {:exclusive false :auto-delete false})
+  (exchange ch exchange-name)
+  (queue ch topic-name)
   (lqueue/bind    ch topic-name exchange-name {:routing-key topic-name})
   (let [serialiser (pserialisation/make-serialiser (:type job-message))
         media-type (pserialisation/media-type serialiser)

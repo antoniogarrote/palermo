@@ -95,6 +95,7 @@
           queue-name (str "palermo_test_queue_" (java.util.UUID/randomUUID))
           tags (start-worker channel test-exchange-1 [queue-name])]
 
+      (queue channel FAILED_QUEUE)
       (lqueue/purge channel FAILED_QUEUE)
 
       (is (= (count tags)) 1)
