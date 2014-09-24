@@ -18,6 +18,11 @@
   (process [j args] 
     (add-test-message args)))
 
+(deftype TestErrorMessageJob []
+  palermo.job.PalermoJob
+  (process [j args] 
+    (throw (Exception. "Test error"))))
+
 
 (deftest test-start-worker
   (testing "Should be possible to start a worker that will consume messages from a queue"
@@ -79,3 +84,31 @@
       (.close connection))))
 
 
+(deftest test-error-handler
+  (testing "Should re-enqueue failed messages in the failed queue"
+
+    (swap! test-messages empty)
+
+    (let [connection (rabbit-test)
+          channel (channel connection)
+          test-exchange-1 (str "palermo_test_" (java.util.UUID/randomUUID))
+          queue-name (str "palermo_test_queue_" (java.util.UUID/randomUUID))
+          tags (start-worker channel test-exchange-1 [queue-name])]
+
+      (lqueue/purge channel FAILED_QUEUE)
+
+      (is (= (count tags)) 1)
+
+      (publish-job-messages
+       channel
+       test-exchange-1
+       queue-name
+       (make-job-message :json palermo.worker_test.TestErrorMessageJob "hey" {:id "1"}))
+      (Thread/sleep 3000)
+      (is (= (count @test-messages) 0))
+      (is (= 0 (lqueue/message-count channel queue-name)))
+      (is (= 1 (lqueue/message-count channel FAILED_QUEUE)))
+      (lexchange/delete channel test-exchange-1)
+      (lqueue/delete channel queue-name)
+      (.close channel)
+      (.close connection))))

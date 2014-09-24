@@ -26,8 +26,7 @@
    failed queue"
   [channel exchange-name]
   (fn [exception metadata payload]
-    (let [_ (println (str "ERROR " metadata " - " payload))
-          exception-message (.getMessage exception)
+    (let [exception-message (.getMessage exception)
           stack-trace (map (fn [trace] (.toString trace))
                            (.getStackTrace exception))
           stack-trace (clojure.string/join "\n" stack-trace)
@@ -47,6 +46,7 @@
 (defn start-worker
   "Starts the execution of a new Palermo worker"
   [channel exchange-name queues]
+
   (let [tags (map 
               (fn [queue]
                 (prabbit/consume-job-messages
