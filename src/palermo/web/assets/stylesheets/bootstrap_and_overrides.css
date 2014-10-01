@@ -1,0 +1,328 @@
+/*
+
+
+  Use Font Awesome icons (default)
+  To use Glyphicons sprites instead of Font Awesome, replace with "require twitter-bootstrap-static/sprites"
+
+  */
+html {
+  background: #efefef; }
+
+body {
+  padding-top: 40px; }
+
+.navbar {
+  border-bottom: 5px solid #ce1212; }
+
+.navbar .brand, .navbar .navbar-brand {
+  color: white; }
+
+.navbar-fixed-top .navbar-inner, .navbar-static-top .navbar-inner {
+  border-width: 0; }
+
+.navbar-inverse .nav > .active {
+  background: #fa2424;
+  /* Old browsers */
+  background: -moz-linear-gradient(top, #fa2424 0%, #ce1212 100%);
+  /* FF3.6+ */
+  background: -webkit-gradient(linear, left top, left bottom, color-stop(0%, #fa2424), color-stop(100%, #ce1212));
+  /* Chrome,Safari4+ */
+  background: -webkit-linear-gradient(top, #fa2424 0%, #ce1212 100%);
+  /* Chrome10+,Safari5.1+ */
+  background: -o-linear-gradient(top, #fa2424 0%, #ce1212 100%);
+  /* Opera 11.10+ */
+  background: -ms-linear-gradient(top, #fa2424 0%, #ce1212 100%);
+  /* IE10+ */
+  background: linear-gradient(to bottom, #fa2424 0%, #ce1212 100%);
+  /* W3C */
+  filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#fa2424', endColorstr='#ce1212',GradientType=0 );
+  /* IE6-8 */ }
+
+.navbar .nav > .active > a, .navbar .nav > .active > a:hover, .navbar .nav > .active > a:focus {
+  background: none; }
+
+.container h1 {
+  color: #ce1212;
+  font-size: 24px; }
+
+.label-info[href], .badge-info[href] {
+  background-color: #3A87AD; }
+
+.logo {
+  float: left;
+  margin: 2px 5px;
+  width: 36px;
+  height: 36px; }
+
+/* The remaining CSS rules come from the legacy Resque application */
+.subnav {
+  padding: 8px 10px 7px 10px;
+  background: #ce1212;
+  font-size: 90%; }
+
+.subnav li {
+  display: inline;
+  line-height: 16px; }
+
+.subnav li a {
+  color: #fff;
+  text-decoration: none;
+  margin: 3px;
+  display: inline-block;
+  background: #dd5b5b;
+  padding: 5px;
+  -webkit-border-radius: 3px;
+  -moz-border-radius: 3px; }
+
+.subnav li.current a {
+  background: #fff;
+  font-weight: bold;
+  color: #ce1212; }
+
+.subnav li a:active {
+  background: #b00909; }
+
+.container span.hl {
+  background: #efefef;
+  padding: 2px; }
+
+.container h2 {
+  margin: 10px 0;
+  font-size: 130%; }
+
+.container table tr th {
+  background: #efefef;
+  color: #888;
+  font-size: 15px;
+  font-weight: bold;
+  min-width: 16px; }
+
+.container table tr td.no-data {
+  text-align: center;
+  padding: 40px 0;
+  color: #999;
+  font-style: italic;
+  font-size: 130%; }
+
+.container p {
+  margin: 5px 0; }
+
+.container p.intro {
+  margin-bottom: 15px;
+  font-size: 85%;
+  color: #999;
+  margin-top: 0;
+  line-height: 1.3; }
+
+.container h1.wi {
+  margin-bottom: 5px; }
+
+.container p.sub {
+  font-size: 95%;
+  color: #999; }
+
+.container table.queues {
+  width: 40%; }
+
+.container table.queues td.queue {
+  font-weight: bold;
+  width: 50%; }
+
+.container table.queues tr.failure td {
+  background: #ffecec;
+  color: #d37474; }
+
+.container table.queues tr.failure td a {
+  color: #d37474; }
+
+.container table.queues td.failure .badge a {
+  color: white; }
+
+.container table.queues tr.first_failure td {
+  border-top: 2px solid #d37474; }
+
+.container table.jobs td.class {
+  font-family: Monaco, "Courier New", monospace;
+  font-size: 90%;
+  width: 50%; }
+
+.container table.jobs td.args {
+  width: 50%; }
+
+.container table.workers td.icon {
+  width: 1%;
+  background: #efefef;
+  text-align: center; }
+
+.container table.workers td.icon img {
+  height: 16px;
+  width: 16px; }
+
+.container table.workers td.where {
+  width: 25%; }
+
+.container table.workers td.queues {
+  width: 35%; }
+
+.container table.workers td.queues.queue {
+  width: 10%; }
+
+.container table.workers td.process {
+  width: 35%; }
+
+.container table.workers td.process span.waiting {
+  color: #999;
+  font-size: 90%; }
+
+.container table.workers td.process small {
+  font-size: 80%;
+  margin-left: 5px; }
+
+.container table.workers td.process code {
+  font-family: Monaco, "Courier New", monospace;
+  font-size: 90%; }
+
+.container table.workers td.process small a {
+  color: #999; }
+
+.container.polling table.workers tr.working td {
+  background: #f4ffe4;
+  color: #7ac312; }
+
+.container.polling table.workers tr.working td.where a {
+  color: #7ac312; }
+
+.container.polling table.workers tr.working td.process code {
+  font-weight: bold; }
+
+.container table.stats th {
+  font-size: 100%;
+  width: 40%;
+  color: #000; }
+
+.container hr {
+  border: 0;
+  border-top: 5px solid #efefef;
+  margin: 15px 0; }
+
+#footer {
+  padding: 10px 5%;
+  background: #efefef;
+  color: #999;
+  font-size: 85%;
+  line-height: 1.5;
+  border-top: 5px solid #ccc;
+  padding-top: 10px; }
+
+#footer p a {
+  color: #999; }
+
+.container p.poll {
+  background: url(url(/assets/resque_web/poll.png)) no-repeat 0 2px;
+  padding: 3px 0;
+  padding-left: 23px;
+  float: right;
+  font-size: 85%; }
+
+.container ul.failed {
+  margin-top: 20px; }
+
+.container ul.failed li {
+  background: #efefef;
+  /* Old browsers */
+  background: -moz-linear-gradient(top, #efefef 0%, white 100%);
+  /* FF3.6+ */
+  background: -webkit-gradient(linear, left top, left bottom, color-stop(0%, #efefef), color-stop(100%, white));
+  /* Chrome,Safari4+ */
+  background: -webkit-linear-gradient(top, #efefef 0%, white 100%);
+  /* Chrome10+,Safari5.1+ */
+  background: -o-linear-gradient(top, #efefef 0%, white 100%);
+  /* Opera 11.10+ */
+  background: -ms-linear-gradient(top, #efefef 0%, white 100%);
+  /* IE10+ */
+  background: linear-gradient(to bottom, #efefef 0%, white 100%);
+  /* W3C */
+  filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#efefef', endColorstr='#fff',GradientType=0 );
+  /* IE6-8 */
+  margin-top: 10px;
+  padding: 10px;
+  overflow: hidden;
+  border: 1px solid #ccc;
+  -webkit-border-radius: 5px;
+  -moz-border-radius: 5px;
+  border-radius: 5px; }
+
+.container ul.failed li dl dt {
+  font-size: 80%;
+  color: #999;
+  width: 60px;
+  float: left;
+  padding-top: 1px;
+  text-align: right; }
+
+.container ul.failed li dl dd {
+  margin-bottom: 10px;
+  margin-left: 70px; }
+
+.container ul.failed li dl dd .retried {
+  float: right;
+  text-align: right; }
+
+.container ul.failed li dl dd .retried .remove {
+  display: none;
+  margin-top: 8px; }
+
+.container ul.failed li.hover dl dd .retried .remove {
+  display: block; }
+
+.container ul.failed li dl dd .controls {
+  display: none;
+  float: right; }
+
+.container ul.failed li.hover dl dd .controls {
+  display: block; }
+
+.container ul.failed li dl dd code, .container ul.failed li dl dd pre {
+  font-family: Monaco, "Courier New", monospace;
+  font-size: 90%;
+  white-space: pre-wrap; }
+
+.container ul.failed li dl dd.error a {
+  font-family: Monaco, "Courier New", monospace;
+  font-size: 90%; }
+
+.container ul.failed li dl dd.error pre {
+  margin-top: 3px;
+  line-height: 1.3; }
+
+.container p.pagination {
+  background: #efefef;
+  padding: 10px;
+  overflow: hidden; }
+
+.container p.pagination a.less {
+  float: left; }
+
+.container p.pagination a.more {
+  float: right; }
+
+.container form {
+  float: right;
+  margin-top: -10px;
+  margin-left: 10px; }
+
+.container .time a.toggle_format {
+  text-decoration: none; }
+
+#failed tr.total td {
+  background-color: #FFECEC;
+  color: #D37474;
+  font-size: 15px;
+  font-weight: bold; }
+
+#failed .center {
+  text-align: center; }
+
+#failed .failed_class {
+  padding-left: 20px;
+  font-size: 12px; }

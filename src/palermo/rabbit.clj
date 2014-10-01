@@ -87,7 +87,10 @@
                                                                         content headers)]
                                  (handler job-message))
                                (catch Exception e
-                                 (error-handler e metadata payload))))]
+                                 (do
+                                   (println (str "EXCEPTION " (.getMessage e)))
+                                   (.printStackTrace e)
+                                   (error-handler e metadata payload)))))]
        (exchange ch exchange-name)
        (queue ch queue-name)
        (lqueue/bind    ch queue-name exchange-name {:routing-key topic-name})
@@ -113,4 +116,5 @@
     (lbasic/publish ch exchange-name topic-name content {:content-type "application/json"
                                                          :persistent true
                                                          :message-id message-id
-                                                         :headers headers})))
+                                                         :headers headers
+                                                         :destination topic-name})))

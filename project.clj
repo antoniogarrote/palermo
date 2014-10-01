@@ -6,4 +6,16 @@
   :resource-paths ["test/main/resource"]
   :dependencies [[org.clojure/clojure "1.6.0"]
                  [com.novemberain/langohr "3.0.0-rc2"]
-                 [org.clojure/data.json "0.2.5"]])
+                 ;; json serialisation
+                 [org.clojure/data.json "0.2.5"]
+                 ;; java serialisation using jboss
+                 [jboss/jboss-serialization "4.2.2.GA"]
+                 [log4j "1.2.15" :exclusions [javax.mail/mail
+                                              javax.jms/jms
+                                              com.sun.jdmk/jmxtools
+                                              com.sun.jmx/jmxri]]
+                 [trove/trove "1.0.2"]
+                 ;; jetty
+                 [org.eclipse.jetty/jetty-jsp "9.2.3.v20140905"]
+                 [org.eclipse.jetty/jetty-webapp "9.2.3.v20140905"]
+                 [org.eclipse.jetty/jetty-server "9.2.3.v20140905"]])

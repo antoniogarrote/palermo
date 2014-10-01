@@ -1,7 +1,8 @@
 (ns palermo.server
-  (:require [palermo.rabbit :as prabbit]
-            [palermo.job    :as pjob]
-            [palermo.worker :as pworker])
+  (:require [palermo.rabbit        :as prabbit]
+            [palermo.job           :as pjob]
+            [palermo.worker        :as pworker]
+            [palermo.introspection :as pintrospection])
   (:gen-class
     :init init
     :name palermo.Server
@@ -15,8 +16,24 @@
               [stopWorker [String] void]
               [workers [] "[Ljava.lang.String;"]
               [setSerialization [String] void]
-              [getSerialization [] String]]
+              [getSerialization [] String]
+              [getQueuesInfo [] java.util.HashMap]
+              [getWorkersInfo [] java.util.HashMap]]
     :state state))
+
+(defn to-java-nested-hashes
+  "Transforms a collection of nested Clojure PersistentArrayMaps into java HashMaps"
+  [m]
+  (let [mapped (map (fn [[k,v]] 
+                      (do
+                        (println (str "NEXT: " v))
+                        (if (map? v)
+                          [k (to-java-nested-hashes v)]
+                          (if (coll? v)
+                            [k (java.util.ArrayList. (map to-java-nested-hashes v))]
+                            [k v]))))
+                    m)]
+    (java.util.HashMap. (apply hash-map (apply concat mapped)))))
 
 (defn connect 
   "Establish a connection to RabbitMQ"
@@ -94,3 +111,14 @@
   
 (defn -show [this]
   (deref (.state this)))
+
+
+(defn -getQueuesInfo [this]
+  (let [info (pintrospection/queues-for-exchange (:exchange (deref (.state this)))
+                                                 (:vhost (deref (.state this))))]
+    (to-java-nested-hashes (clojure.walk/stringify-keys info))))
+
+(defn -getWorkersInfo [this]
+  (let [info (pintrospection/consumers-for-exchange (:exchange (deref (.state this)))
+                                                    (:vhost (deref (.state this))))]
+    (to-java-nested-hashes (clojure.walk/stringify-keys info))))
