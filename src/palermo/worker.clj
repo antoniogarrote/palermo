@@ -32,6 +32,11 @@
           stack-trace (clojure.string/join "\n" stack-trace)
           type (:content-type metadata)
           headers (prabbit/process-headers (:headers metadata))
+          retries (if (nil? (:retries headers)) 0 (inc (:retries headers)))
+          headers (assoc headers :retries retries)
+          headers (assoc headers :exception-message exception-message)
+          headers (assoc headers :stack-trace stack-trace)
+          headers (assoc headers :failed-at (pjob/unix-timestamp))
           job-class (:job-class headers)
           error-job-message (pjob/make-job-message type job-class payload headers)]
       (prabbit/pipe-message channel 

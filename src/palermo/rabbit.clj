@@ -51,6 +51,10 @@
   [channel queue-name]
   (lqueue/declare channel queue-name {:exclusive false :auto-delete false :durable true}))
 
+(defn purge-queue
+  "Removes all messages in the provided queue"
+  [channel queue-name]
+  (lqueue/purge channel queue-name))
 (defn pipe-message
   "Redirects a message to another queue"
   [channel exchange-name topic-name payload metadata]
@@ -113,7 +117,7 @@
         headers (assoc headers :id message-id)
         headers (clojure.walk/stringify-keys headers)
         content (pserialisation/write-data serialiser (:content job-message))]
-    (lbasic/publish ch exchange-name topic-name content {:content-type "application/json"
+    (lbasic/publish ch exchange-name topic-name content {:content-type media-type
                                                          :persistent true
                                                          :message-id message-id
                                                          :headers headers

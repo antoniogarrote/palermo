@@ -1,9 +1,8 @@
-(defproject palermo "0.1.0-SNAPSHOT"
+(defproject palermo "0.2.0-SNAPSHOT"
   :description "Palermo, a job processing system built with love"
   :url "http://example.com/FIXME"
   :license {:name "Eclipse Public License"
             :url "http://www.eclipse.org/legal/epl-v10.html"}
-  :resource-paths ["test/main/resource"]
   :dependencies [[org.clojure/clojure "1.6.0"]
                  [com.novemberain/langohr "3.0.0-rc2"]
                  ;; json serialisation
@@ -15,7 +14,16 @@
                                               com.sun.jdmk/jmxtools
                                               com.sun.jmx/jmxri]]
                  [trove/trove "1.0.2"]
-                 ;; jetty
-                 [org.eclipse.jetty/jetty-jsp "9.2.3.v20140905"]
-                 [org.eclipse.jetty/jetty-webapp "9.2.3.v20140905"]
-                 [org.eclipse.jetty/jetty-server "9.2.3.v20140905"]])
+                 ;; cli
+                 [commons-cli/commons-cli "1.2"]
+                 ;; web
+                 ;[ring/ring-jetty-adapter "1.3.1"]
+                 [compojure "1.2.0"]
+                 [hiccup "1.0.5"]
+                 ]
+
+  ; ring
+  :plugins [[lein-ring "0.8.12"]]
+  :ring {:handler palermo.web/start-dev}
+  :aot [palermo.server]
+  )

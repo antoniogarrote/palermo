@@ -33,14 +33,37 @@
 
 (defn jobs-for-queue
   "Returns the list of jobs in queue"
-  [channel exchange-name queue-name]
-  (loop [messages []
-         keys {}
-         [next-metadata next-payload] (lbasic/get channel queue-name)]
-    (let [message-id (:message-id queue-name)]
-      (if (nil? (get keys message-id))
-        (do (prabbit/pipe-message channel exchange-name queue-name next-payload next-metadata)
-            (recur (conj messages [next-metadata next-payload])
-                   (assoc keys message-id true)
-                   (lbasic/get channel queue-name)))
-        messages))))
+  ([channel exchange-name queue-name should-pipe]
+      (loop [messages []
+             keys {}
+             to-pipe []
+             [next-metadata next-payload] (lbasic/get channel queue-name)]
+        (if (nil? next-payload)
+          ;; no messages
+          (do 
+            (doseq [[read-metadata read-payload] to-pipe]
+              (prabbit/pipe-message channel exchange-name queue-name read-payload read-metadata))
+            messages)
+          (if (and (= 0 (alength next-payload))
+                   (nil? (:headers next-metadata)))
+            ;; filter weird nil messges
+            (recur messages 
+                   keys
+                   to-pipe
+                   (lbasic/get channel queue-name))
+            ;; normal processing
+            (let [message-id (:message-id next-metadata)]
+              (if (nil? (get keys message-id))
+                (recur (conj messages {:metadata next-metadata
+                                       :payload next-payload})
+                       (assoc keys message-id true)
+                       (if (should-pipe next-metadata)
+                         (conj to-pipe [next-metadata next-payload])
+                         to-pipe)
+                       (lbasic/get channel queue-name))
+                (do 
+                  (doseq [[read-metadata read-payload] to-pipe]
+                    (prabbit/pipe-message channel exchange-name queue-name read-payload read-metadata))
+                  messages)))))))
+  ([channel exchange-name queue-name]
+     (jobs-for-queue channel exchange-name queue-name (fn [_] true))))

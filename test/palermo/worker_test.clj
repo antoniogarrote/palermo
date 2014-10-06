@@ -8,22 +8,6 @@
             [palermo.test_utils :refer :all]))
 
 
-(def test-messages (atom []))
-
-(defn add-test-message [message]
-  (swap! test-messages conj message))
-
-(deftype TestMessageJob []
-  palermo.job.PalermoJob
-  (process [j args] 
-    (add-test-message args)))
-
-(deftype TestErrorMessageJob []
-  palermo.job.PalermoJob
-  (process [j args] 
-    (throw (Exception. "Test error"))))
-
-
 (deftest test-start-worker
   (testing "Should be possible to start a worker that will consume messages from a queue"
 
@@ -39,7 +23,7 @@
        channel
        test-exchange-1
        queue-name
-       (make-job-message :json palermo.worker_test.TestMessageJob "hey" {:id "1"}))
+       (make-job-message :json palermo.test_utils.TestMessageAccJob "hey" {:id "1"}))
       (Thread/sleep 3000)
       (is (= (count @test-messages) 1))
       (is (= (first @test-messages) "hey"))
@@ -65,14 +49,14 @@
        channel
        test-exchange-1
        queue-name-a
-       (make-job-message :json palermo.worker_test.TestMessageJob "hey a" {:id "1"}))
+       (make-job-message :json palermo.test_utils.TestMessageAccJob "hey a" {:id "1"}))
       (Thread/sleep 3000)
       ; second message
       (publish-job-messages
        channel
        test-exchange-1
        queue-name-b
-       (make-job-message :json palermo.worker_test.TestMessageJob "hey b" {:id "2"}))     
+       (make-job-message :json palermo.test_utils.TestMessageAccJob "hey b" {:id "2"}))     
       (Thread/sleep 3000)
       (is (= (count @test-messages) 2))
       (is (= (first  @test-messages) "hey a"))
@@ -104,7 +88,7 @@
        channel
        test-exchange-1
        queue-name
-       (make-job-message :json palermo.worker_test.TestErrorMessageJob "hey" {:id "1"}))
+       (make-job-message :json palermo.test_utils.TestErrorMessageJob "hey" {:id "1"}))
       (Thread/sleep 3000)
       (is (= (count @test-messages) 0))
       (is (= 0 (lqueue/message-count channel queue-name)))

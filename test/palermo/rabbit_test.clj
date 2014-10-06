@@ -5,7 +5,8 @@
             [palermo.rabbit :refer :all]
             [palermo.serialisation :refer :all]
             [palermo.test_utils :refer :all]
-            [palermo.job :as pjob]))
+            [palermo.job :as pjob]
+            [palermo.test_utils :refer :all]))
 
 
 (deftest test-connect
@@ -44,11 +45,6 @@
 
 (deftest test-publish-consume
   (testing "Should be possible to publish and consume correct messages"
-    
-    (deftype TestMessageJob []
-      palermo.job.PalermoJob
-      (process [j args] args))
-
     (let [consumed (atom [])
           connection (rabbit-test)
           ch (channel connection)
@@ -56,7 +52,7 @@
           test-queue-1 "test_queue_1"
           test-exchange-2 (str "palermo_test_" (java.util.UUID/randomUUID))
           test-queue-2 "test_queue_2"
-          message (pjob/make-job-message :json palermo.rabbit_test.TestMessageJob 1)]
+          message (pjob/make-job-message :json palermo.test_utils.TestMessageJob 1)]
       ;; first publish then consume
       (publish-job-messages ch test-exchange-1 test-queue-1 message)
       (Thread/sleep 3000)
@@ -113,11 +109,6 @@
 
 (deftest test-pipe-message
   (testing "Should be possible to pipe a message from one queue to another queue"
-
-    (deftype TestPipeJob []
-      palermo.job.PalermoJob
-      (process [j args] args))
-
     (let [consumed (atom [])
           connection (rabbit-test)
           ch (channel connection)
@@ -127,7 +118,7 @@
           message "\"hello piped\""
           headers {:content-type "application/json"
                    :persitent true
-                   :headers {"job-class" "palermo.rabbit_test.TestPipeJob"}}]
+                   :headers {"job-class" "palermo.test_utils.TestPipeJob"}}]
       (pipe-message ch test-exchange pipe-queue message headers)      
       (Thread/sleep 3000)
       (consume-job-messages ch test-exchange pipe-queue

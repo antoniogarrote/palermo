@@ -18,3 +18,27 @@
            (:username *test-rabbit*)
            (:password *test-rabbit*)
            (:vhost *test-rabbit*)))
+
+
+(deftype TestMessageJob []
+  palermo.job.PalermoJob
+  (process [j args] args))
+
+(def test-messages (atom []))
+
+(defn add-test-message [message]
+  (swap! test-messages conj message))
+
+(deftype TestMessageAccJob []
+  palermo.job.PalermoJob
+  (process [j args] 
+    (add-test-message args)))
+
+(deftype TestErrorMessageJob []
+  palermo.job.PalermoJob
+  (process [j args] 
+    (throw (Exception. "Test error"))))
+
+(deftype TestPipeJob []
+  palermo.job.PalermoJob
+  (process [j args] args))
