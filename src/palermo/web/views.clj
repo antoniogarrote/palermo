@@ -55,11 +55,11 @@
        [:div {:class "nav-collapse navbar-collapse collapse"}
         [:ul {:class "nav navbar-nav"}
          [:li [:a {:href "/"} "Overview"]]
-         [:li [:a {:href "#"} "Working"]]
+         ;[:li [:a {:href "#"} "Working"]]
          [:li [:a {:href "/failures"} "Failures"]]
          [:li [:a {:href "/queues"} "Queues"]]
-         [:li [:a {:href "#"} "Workers"]]
-         [:li [:a {:href "#"} "Stats"]]
+         [:li [:a {:href "/workers"} "Workers"]]
+         ;[:li [:a {:href "#"} "Stats"]]
          ]]]]]
 
     body
@@ -73,7 +73,7 @@
       [:p
        "Connected to "
        [:img {:src "images/rabbit.png" :style "width: 15px; margin-top: -8px"}]
-       [:a {:href (str "http://" host ":" port "/#/exchange/%2F/" exchange)}
+       [:a {:href (str "http://" host ":1" port "/#/exchange/%2F/" exchange)}
         (str host ":" port "/" exchange)]]
       ]]]))
 
@@ -125,10 +125,11 @@
         (map (fn [worker-info]
                (let [worker-channel (.get worker-info "channel_details")
                      host (.get worker-channel "peer_host")
-                     tag (.get worker-info "consumer_tag")]
+                     tag (.get worker-info "consumer_tag")
+                     queue-name (.get (.get worker-info "queue") "name")]
                  [:tr
                   [:td {:class "where"} host]
-                  [:td {:class "queues queue"} "unknown"]
+                  [:td {:class "queues queue"} queue-name]
                   [:td {:class "process"}
                    [:code tag]]]))
              workers))]]))
@@ -258,3 +259,26 @@
                          ]
                         [:div {:class "r"}]]))
                    jobs)]])))
+
+;; queues page
+
+(defn all-queues [palermo]
+  (let [host (.get (.show palermo) "host")
+        port (.get (.show palermo) "port")
+        exchange (.get (.show palermo) "exchange")]
+    (layout host port exchange
+            [:div {:class "container" :id "main"}
+             (queues palermo)
+             [:hr]])))
+
+
+;; workers page
+
+(defn all-workers [palermo]
+  (let [host (.get (.show palermo) "host")
+        port (.get (.show palermo) "port")
+        exchange (.get (.show palermo) "exchange")]
+    (layout host port exchange
+            [:div {:class "container" :id "main"}
+             (working palermo)
+             [:hr]])))

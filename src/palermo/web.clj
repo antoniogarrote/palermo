@@ -12,6 +12,10 @@
 (defn make-routes [host port username password vhost exchange]
   (let [palermo (Server. host port username password exchange vhost)]
     (defroutes routes
+      (GET "/queues" []
+           (views/all-queues palermo))
+      (GET "/workers" []
+           (views/all-workers palermo))
       (DELETE "/queues/:name/purge" [name]
               (.purgeQueue palermo name)
               (response/redirect (str "/queue/" name)))

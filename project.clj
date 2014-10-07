@@ -4,7 +4,7 @@
   :license {:name "Eclipse Public License"
             :url "http://www.eclipse.org/legal/epl-v10.html"}
   :dependencies [[org.clojure/clojure "1.6.0"]
-                 [com.novemberain/langohr "3.0.0-rc2"]
+                 [com.novemberain/langohr "3.0.0-rc3"]
                  ;; json serialisation
                  [org.clojure/data.json "0.2.5"]
                  ;; java serialisation using jboss
@@ -17,10 +17,12 @@
                  ;; cli
                  [commons-cli/commons-cli "1.2"]
                  ;; web
-                 ;[ring/ring-jetty-adapter "1.3.1"]
+                 [ring/ring-jetty-adapter "1.3.1"]
                  [compojure "1.2.0"]
                  [hiccup "1.0.5"]
                  ]
+
+  :main palermo.cli
 
   ; ring
   :plugins [[lein-ring "0.8.12"]]
