@@ -1,4 +1,5 @@
 (ns palermo.rabbit
+  (:import [java.util.concurrent Executors])
   (:require [langohr.core :as rmq]
             [langohr.basic :as lbasic]
             [langohr.channel :as lchannel]
@@ -10,6 +11,9 @@
 
 (defn connect
   "Connects to the RabbitMQ broker"
+  ([host port username password vhost max-threads]
+     (let [thread-factory (.getThreadFactory (Executors/newFixedThreadPool (int max-threads)))]
+       (rmq/connect {:host host :port port :username username :password password :vhost vhost :thread-factory thread-factory})))
   ([host port username password vhost]
      (rmq/connect {:host host :port port :username username :password password :vhost vhost}))
   ([]

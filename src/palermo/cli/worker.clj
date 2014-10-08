@@ -1,6 +1,6 @@
-(ns palermo.cli.web
+(ns palermo.cli.worker
   (:use [palermo.cli.utils])
-  (:require [palermo.web :as pweb]))
+  (:import [palermo Server]))
 
 (def OPTIONS (make-options
               (make-value-option "host" "Host of the RabbitMQ server, defaults to localhost" "HOST" "localhost")
@@ -9,8 +9,9 @@
               (make-value-option "password" "Password for the RabbitMQ server, defaults to guest" "PASSWORD" "guest")
               (make-value-option "vhost" "Virtual Host for the RabbitMQ server, defaults to " "VHOST" "/")
               (make-value-option "exchange" "RabitMQ exchange for Palermo, defaults to palermo" "EXCHANGE" "palermo")
-              (make-value-option "webport" "Port where the Palermo web interface will be waiting for connections, defaults to 3000" "WEBPORT" "3000")))
-
+              (make-multi-value-option "queues", "Comma separated list of queues this worker will connect to, defaults to jobs", "QUEUES", "jobs")
+              ;(make-value-option "threads", "Number of worker threads accepting jobs in this worker", "THREADS", "10")
+              ))
 (defn start [args]
   (let [parser (new org.apache.commons.cli.BasicParser)
         cmd (.parse parser OPTIONS args false)
@@ -20,5 +21,9 @@
         password (value-for cmd "password")
         exchange (value-for cmd "exchange")
         vhost (value-for cmd "vhost")
-        webport (Integer/parseInt (value-for cmd "webport"))]
-    (pweb/start webport host port username password vhost exchange)))
+        queues  (.split (value-for cmd "queues"), ",")
+        ;threads (Integer/parseInt (value-for cmd "threads")) 
+        palermo (new Server host port username password exchange vhost)]
+    (.startWorker palermo queues)))
+
+

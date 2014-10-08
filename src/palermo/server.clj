@@ -110,7 +110,6 @@
                                                                       :tags worker-tags}))
     worker-id))
 
-
 (defn -workers [this]
   (let [workers (:workers (deref (.state this)))]
     (into-array String (keys workers))))

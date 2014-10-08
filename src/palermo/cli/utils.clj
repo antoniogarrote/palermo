@@ -14,6 +14,13 @@
       (OptionBuilder/withDescription description)
       (OptionBuilder/create name)))
 
+(defn make-multi-value-option [name description arg-name default]
+  (swap! *defaults* assoc name default)
+  (do (OptionBuilder/withArgName arg-name)
+      (OptionBuilder/hasArg)
+      (OptionBuilder/withValueSeparator)
+      (OptionBuilder/withDescription description)
+      (OptionBuilder/create name)))
 
 (defn make-options [& options]
   (let [opts (new Options)]
