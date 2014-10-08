@@ -29,6 +29,11 @@
   [channel]
   (rmq/close channel))
 
+(defn qos-channel
+  "Sets the QOS for a channel"
+  [channel prefetch]
+  (lbasic/qos channel prefetch))
+
 (defn cancel-subscriber
   "Cancels a subscriber provided a channel and consumer-tag"
   [channel consumer-tag]
@@ -67,6 +72,11 @@
   (lqueue/bind    channel topic-name exchange-name {:routing-key topic-name})
   (lbasic/publish channel exchange-name topic-name payload metadata))
 
+(defn ack-message
+  "Acknowledges the reception of a message"
+  [channel delivery-tag]
+  (lbasic/ack channel delivery-tag))
+
 
 (defn consume-job-messages
   "Starts a consumer attached to a queue and bound to a a certain topic"
@@ -80,29 +90,31 @@
   ([ch exchange-name queue-name handler error-handler]
      (let [topic-name queue-name
            data-handler    (fn [ch metadata ^bytes payload]
-                             (try  
-                               (let [media-type (:content-type metadata)
-                                     message-id (:message-id metadata)
-                                     headers (process-headers (:headers metadata))
-                                     job-class (java.lang.Class/forName (:job-class headers))
-                                     headers (dissoc headers :job-class)
-                                     headers (if (nil? message-id)
-                                               headers
-                                               (assoc headers :id message-id))
-                                     serialiser (pserialisation/make-serialiser media-type)
-                                     content (pserialisation/read-data serialiser payload)
-                                     job-message (pjob/make-job-message media-type job-class 
-                                                                        content headers)]
-                                 (handler job-message))
-                               (catch Exception e
-                                 (do
-                                   (println (str "EXCEPTION " (.getMessage e)))
-                                   (.printStackTrace e)
-                                   (error-handler e metadata payload)))))]
+                             (do
+                               (try  
+                                 (let [media-type (:content-type metadata)
+                                       message-id (:message-id metadata)
+                                       headers (process-headers (:headers metadata))
+                                       job-class (java.lang.Class/forName (:job-class headers))
+                                       headers (dissoc headers :job-class)
+                                       headers (if (nil? message-id)
+                                                 headers
+                                                 (assoc headers :id message-id))
+                                       serialiser (pserialisation/make-serialiser media-type)
+                                       content (pserialisation/read-data serialiser payload)
+                                       job-message (pjob/make-job-message media-type job-class 
+                                                                          content headers)]
+                                   (handler job-message))
+                                 (catch Exception e
+                                   (do
+                                     (println (str "EXCEPTION " (.getMessage e)))
+                                     (.printStackTrace e)
+                                     (error-handler e metadata payload))))
+                               (ack-message ch (:delivery-tag metadata))))]
        (exchange ch exchange-name)
        (queue ch queue-name)
        (lqueue/bind    ch queue-name exchange-name {:routing-key topic-name})
-       (lconsumers/subscribe ch queue-name data-handler {:auto-ack true}))))
+       (lconsumers/subscribe ch queue-name data-handler {:auto-ack false}))))
 
 
 (defn publish-job-messages

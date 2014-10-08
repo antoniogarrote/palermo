@@ -42,3 +42,10 @@
 (deftype TestPipeJob []
   palermo.job.PalermoJob
   (process [j args] args))
+
+
+(deftype TestSlowJob []
+  palermo.job.PalermoJob
+  (process [j args]
+    (Thread/sleep 7000)
+    (println "FINISHED!")))

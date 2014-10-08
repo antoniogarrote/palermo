@@ -51,7 +51,6 @@
 (defn start-worker
   "Starts the execution of a new Palermo worker"
   [channel exchange-name queues]
-
   (let [tags (map 
               (fn [queue]
                 (prabbit/consume-job-messages

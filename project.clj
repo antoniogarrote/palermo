@@ -27,5 +27,5 @@
   ; ring
   :plugins [[lein-ring "0.8.12"]]
   :ring {:handler palermo.web/start-dev}
-  :aot [palermo.server]
+  :aot [palermo.server palermo.test_utils]
   )

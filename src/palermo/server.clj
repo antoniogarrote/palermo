@@ -14,6 +14,7 @@
               [show [] java.util.HashMap]
               [enqueue [String java.lang.Class Object] void]
               [startWorker ["[Ljava.lang.String;"] String]
+              [startWorker ["[Ljava.lang.String;" Integer] String]
               [stopWorker [String] void]
               [workers [] "[Ljava.lang.String;"]
               [setSerialization [String] void]
@@ -42,8 +43,10 @@
 
 (defn connect 
   "Establish a connection to RabbitMQ"
-  [{:keys [host port username password exchange vhost]}]
-  (prabbit/connect host port username password vhost))
+  ([{:keys [host port username password vhost]}]
+     (prabbit/connect host port username password vhost))
+  ([{:keys [host port username password vhost]} max-threads]
+     (prabbit/connect host port username password vhost max-threads)))
 
 (defn -init 
   ([]
@@ -53,6 +56,8 @@
                   :port 5672
                   :vhost "/"
                   :exchange "palermo"
+                  :username "guest"
+                  :password "guest"
                   :serialization "application/x-java-serialized-object"
                   :consumers {}}))])
   ([exchange] 
@@ -62,6 +67,8 @@
                   :host "localhost"
                   :port 5672
                   :exchange exchange
+                  :username "guest"
+                  :password "guest"
                   :serialization "application/x-java-serialized-object"
                   :consumers {}}))])
   ([host port username password exchange vhost]
@@ -71,6 +78,8 @@
                   :host host
                   :port port
                   :exchange exchange
+                  :username username
+                  :password password
                   :serialization "application/x-java-serialized-object"
                   :consumers {}}))])
   ([host port exchange]
@@ -80,6 +89,8 @@
                   :host host
                   :port port
                   :exchange exchange
+                  :username "guest"
+                  :password "guest"
                   :serialization "application/x-java-serialized-object"
                   :consumers {}}))]))
 
@@ -98,11 +109,30 @@
                  :queue queue}
         job-message (pjob/make-job-message serialization-type job-class arguments headers)
         ch (prabbit/channel (:connection (deref (.state this))))]
-    (prabbit/publish-job-messages ch exchange-name queue job-message)))
+    (prabbit/publish-job-messages ch exchange-name queue job-message)
+    (prabbit/close-channel ch)))
 
 (defn -startWorker [this queues]
   (let [worker-id (str (java.util.UUID/randomUUID))
         channel (prabbit/channel (:connection (deref (.state this))))
+        _ (prabbit/qos-channel channel 1)
+        exchange-name (:exchange (deref (.state this)))
+        worker-tags (pworker/start-worker channel exchange-name queues)
+        old-workers (:workers (deref (.state this)))]
+    (swap! (.state this) assoc :workers (assoc old-workers worker-id {:channel channel
+                                                                      :tags worker-tags}))
+    worker-id))
+
+(defn -startWorker [this queues max-threads]
+  (let [host (:host (deref (.state this)))
+        port (:port (deref (.state this)))
+        username (:username (deref (.state this)))
+        password (:password (deref (.state this)))
+        vhost (:vhost (deref (.state this)))
+        connection (connect {:host host :port port :username username :password password :vhost vhost} max-threads)
+        worker-id (str (java.util.UUID/randomUUID))
+        channel (prabbit/channel connection)
+        _ (prabbit/qos-channel channel 1)
         exchange-name (:exchange (deref (.state this)))
         worker-tags (pworker/start-worker channel exchange-name queues)
         old-workers (:workers (deref (.state this)))]
