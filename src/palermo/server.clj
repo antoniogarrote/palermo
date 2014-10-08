@@ -5,7 +5,7 @@
             [palermo.introspection :as pintrospection])
   (:gen-class
     :init init
-    :name palermo.Server
+    :name palermo.PalermoServer
     :constructors {[String Integer String String String String] []
                    [String Integer String] []
                    [String] []
@@ -14,7 +14,7 @@
               [show [] java.util.HashMap]
               [enqueue [String java.lang.Class Object] void]
               [startWorker ["[Ljava.lang.String;"] String]
-              [startWorker ["[Ljava.lang.String;" Integer] String]
+              ;[startWorker ["[Ljava.lang.String;" Integer] String]
               [stopWorker [String] void]
               [workers [] "[Ljava.lang.String;"]
               [setSerialization [String] void]
@@ -123,22 +123,22 @@
                                                                       :tags worker-tags}))
     worker-id))
 
-(defn -startWorker [this queues max-threads]
-  (let [host (:host (deref (.state this)))
-        port (:port (deref (.state this)))
-        username (:username (deref (.state this)))
-        password (:password (deref (.state this)))
-        vhost (:vhost (deref (.state this)))
-        connection (connect {:host host :port port :username username :password password :vhost vhost} max-threads)
-        worker-id (str (java.util.UUID/randomUUID))
-        channel (prabbit/channel connection)
-        _ (prabbit/qos-channel channel 1)
-        exchange-name (:exchange (deref (.state this)))
-        worker-tags (pworker/start-worker channel exchange-name queues)
-        old-workers (:workers (deref (.state this)))]
-    (swap! (.state this) assoc :workers (assoc old-workers worker-id {:channel channel
-                                                                      :tags worker-tags}))
-    worker-id))
+; (defn -startWorker [this queues max-threads]
+;   (let [host (:host (deref (.state this)))
+;         port (:port (deref (.state this)))
+;         username (:username (deref (.state this)))
+;         password (:password (deref (.state this)))
+;         vhost (:vhost (deref (.state this)))
+;         connection (connect {:host host :port port :username username :password password :vhost vhost} max-threads)
+;         worker-id (str (java.util.UUID/randomUUID))
+;         channel (prabbit/channel connection)
+;         _ (prabbit/qos-channel channel 1)
+;         exchange-name (:exchange (deref (.state this)))
+;         worker-tags (pworker/start-worker channel exchange-name queues)
+;         old-workers (:workers (deref (.state this)))]
+;     (swap! (.state this) assoc :workers (assoc old-workers worker-id {:channel channel
+;                                                                       :tags worker-tags}))
+;     worker-id))
 
 (defn -workers [this]
   (let [workers (:workers (deref (.state this)))]

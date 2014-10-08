@@ -1,5 +1,10 @@
 (ns palermo.job)
 
+(definterface PalermoJob
+  (^void process [^Object args] 
+         "Processing logic for the job receiving the incoming arguments"))
+
+
 (defn unix-timestamp
   "Returns the UNIX timestamp for the current time"
   []
@@ -22,6 +27,3 @@
   ([type job-class content key & headers]
      (make-job-message type job-class content 
                        (apply hash-map (cons key headers)))))
-
-(defprotocol PalermoJob
-  (process [j args]))

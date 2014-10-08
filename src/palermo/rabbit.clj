@@ -9,6 +9,14 @@
             [palermo.serialisation :as pserialisation]
             [palermo.job :as pjob]))
 
+(def WORKER_COUNT (atom 0))
+
+(defn worker-id []
+  (let [next-counter (swap! WORKER_COUNT inc)
+        process-id (.getName (java.lang.management.ManagementFactory/getRuntimeMXBean))]
+    (str "pid:" process-id "/worker-" next-counter)))
+
+
 (defn connect
   "Connects to the RabbitMQ broker"
   ([host port username password vhost max-threads]
@@ -114,7 +122,8 @@
        (exchange ch exchange-name)
        (queue ch queue-name)
        (lqueue/bind    ch queue-name exchange-name {:routing-key topic-name})
-       (lconsumers/subscribe ch queue-name data-handler {:auto-ack false}))))
+       (lconsumers/subscribe ch queue-name data-handler {:auto-ack false 
+                                                         :consumer-tag (worker-id)}))))
 
 
 (defn publish-job-messages

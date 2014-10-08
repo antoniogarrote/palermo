@@ -94,7 +94,7 @@
       (Thread/sleep 3000)
       (consume-job-messages ch test-exchange test-queue
                             (fn [message] 
-                              (pjob/process (new palermo.rabbit_test.TestErrorJob) 
+                              (.process (new palermo.rabbit_test.TestErrorJob) 
                                             (:content message))
                               (swap! consumed (:content message)))
                             (fn [exception metadata payload]

@@ -6,11 +6,11 @@
              [ring.middleware.resource :refer [wrap-resource]]
              [ring.util.response :as response]
              [palermo.web.views :as views])
-   (:import [palermo Server]))
+   (:import [palermo PalermoServer]))
 
 
 (defn make-routes [host port username password vhost exchange]
-  (let [palermo (Server. host port username password exchange vhost)]
+  (let [palermo (PalermoServer. host port username password exchange vhost)]
     (defroutes routes
       (GET "/queues" []
            (views/all-queues palermo))

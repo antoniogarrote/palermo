@@ -19,7 +19,7 @@
   "Handles a new job message received from RabbitQM"
   [{:keys [type job-class content  headers]}]
   (let [job (instantiate job-class)]
-    (pjob/process job content)))
+    (.process job content)))
 
 (defn worker-error-handler
   "Generates an error handler that re-enqueue a failed job into the 
