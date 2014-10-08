@@ -1,10 +1,7 @@
 # palermo
 
-A Clojure library designed to build RESTful micro services
-
-## Usage
-
-I'll let you know how the magic works...
+A job processing system for the JVM inspired by Resque, backed by
+RabbitMQ and written in Clojure
 
 ## License
 
