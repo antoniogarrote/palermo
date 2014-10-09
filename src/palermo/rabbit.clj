@@ -140,6 +140,7 @@
         message-id (or (:id (:headers job-message)) (str (java.util.UUID/randomUUID)))
         headers (assoc (:headers job-message) :job-class job-class)
         headers (assoc headers :id message-id)
+        headers (assoc headers :queue topic-name)
         headers (clojure.walk/stringify-keys headers)
         content (pserialisation/write-data serialiser (:content job-message))]
     (lbasic/publish ch exchange-name topic-name content {:content-type media-type

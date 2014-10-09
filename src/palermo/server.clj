@@ -48,6 +48,17 @@
   ([{:keys [host port username password vhost]} max-threads]
      (prabbit/connect host port username password vhost max-threads)))
 
+(defn with-connection [configuration f]
+  (try 
+    (let [connection (:connection (deref configuration))]  
+      (f connection))
+    (catch Exception ex
+      (println "Wrapping connection error, retrying...")
+      (let [new-connection (connect configuration)
+            result (f new-connection)]
+        (swap! configuration assoc :connection new-connection)
+        result))))
+
 (defn -init 
   ([]
      [[] (let [connection (connect {:host "localhost" :port 5672 :username "guest" :password "guest" :vhost "/"})]
@@ -108,13 +119,13 @@
                  :created-at (pjob/unix-timestamp)
                  :queue queue}
         job-message (pjob/make-job-message serialization-type job-class arguments headers)
-        ch (prabbit/channel (:connection (deref (.state this))))]
+        ch (with-connection (.state this) #(prabbit/channel %))]
     (prabbit/publish-job-messages ch exchange-name queue job-message)
     (prabbit/close-channel ch)))
 
 (defn -startWorker [this queues]
   (let [worker-id (str (java.util.UUID/randomUUID))
-        channel (prabbit/channel (:connection (deref (.state this))))
+        channel (with-connection (.state this) #(prabbit/channel %))
         _ (prabbit/qos-channel channel 1)
         exchange-name (:exchange (deref (.state this)))
         worker-tags (pworker/start-worker channel exchange-name queues)
@@ -169,7 +180,7 @@
     (to-java-nested-hashes (clojure.walk/stringify-keys info))))
 
 (defn -getQueueJobs [this queue-name]
-  (let [channel (prabbit/channel (:connection (deref (.state this))))
+  (let [channel (with-connection (.state this) #(prabbit/channel %))
         jobs (pintrospection/jobs-for-queue
                channel
                (:exchange (deref (.state this)))
@@ -184,7 +195,7 @@
 
 
 (defn -retryJob [this message-id]
-  (let [channel (prabbit/channel (:connection (deref (.state this))))
+  (let [channel (with-connection (.state this) #(prabbit/channel %))
         exchange (:exchange (deref (.state this)))
         jobs (pintrospection/jobs-for-queue
                channel
@@ -206,7 +217,7 @@
     (prabbit/close-channel channel)))
 
 (defn -retryAllFailedJobs [this]
-  (let [channel (prabbit/channel (:connection (deref (.state this))))
+  (let [channel (with-connection (.state this) #(prabbit/channel %))
         exchange (:exchange (deref (.state this)))
         jobs (pintrospection/jobs-for-queue
                channel
@@ -228,5 +239,5 @@
 
 
 (defn -purgeQueue [this queue-name]
-  (let [channel (prabbit/channel (:connection (deref (.state this))))]
+  (let [channel (with-connection (.state this) #(prabbit/channel %))]
     (prabbit/purge-queue channel queue-name)))
