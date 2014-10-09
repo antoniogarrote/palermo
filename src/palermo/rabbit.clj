@@ -27,6 +27,11 @@
   ([]
      (rmq/connect)))
 
+(defn close-connection
+  "Closes the RabbitMQ connection"
+  [connection]
+  (.close connection))
+
 (defn channel
   "Opens a Langohr channel using the provided connection"
   [connection]

@@ -91,7 +91,7 @@
       [:p 
        "Powered by "
        [:a {:href "http://github.com/antoniogarrote/palermo"} "Palermo"]
-       " v0.3.0 (a job processing system built with &#10084;)"]
+       " v0.3.4 (a job processing system built with &#10084;)"]
       [:p
        "Connected to "
        [:img {:src "/images/rabbit.png" :style "width: 15px; margin-top: -8px"}]

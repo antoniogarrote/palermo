@@ -25,6 +25,7 @@
               [retryJob [String] void]
               [retryAllFailedJobs [] void]
               [purgeQueue [String] void]
+              [disconnect [] void]
              ]
     :state state))
 
@@ -241,3 +242,6 @@
 (defn -purgeQueue [this queue-name]
   (let [channel (with-connection (.state this) #(prabbit/channel %))]
     (prabbit/purge-queue channel queue-name)))
+
+(defn -disconnect [this]
+  (with-connection (.state this) #(prabbit/close-connection %)))

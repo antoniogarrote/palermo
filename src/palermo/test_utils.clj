@@ -1,5 +1,6 @@
 (ns palermo.test_utils
-  (:require [palermo.rabbit :refer :all]))
+  (:require [palermo.rabbit :refer :all]
+            [palermo.core :refer [defpalermojob]]))
 
 (def ^:dynamic *test-rabbit*
   {:host "localhost" 
@@ -20,8 +21,7 @@
            (:vhost *test-rabbit*)))
 
 
-(deftype TestMessageJob []
-  palermo.job.PalermoJob
+(defpalermojob TestMessageJob
   (process [j args] args))
 
 (def test-messages (atom []))
@@ -29,22 +29,18 @@
 (defn add-test-message [message]
   (swap! test-messages conj message))
 
-(deftype TestMessageAccJob []
-  palermo.job.PalermoJob
+(defpalermojob TestMessageAccJob
   (process [j args] 
     (add-test-message args)))
 
-(deftype TestErrorMessageJob []
-  palermo.job.PalermoJob
+(defpalermojob TestErrorMessageJob
   (process [j args] 
     (throw (Exception. "Test error"))))
 
-(deftype TestPipeJob []
-  palermo.job.PalermoJob
+(defpalermojob TestPipeJob 
   (process [j args] args))
 
-(deftype TestLong []
-    palermo.job.PalermoJob
+(defpalermojob TestLong 
   (process [job timeout]
     (println "SLEEPING...")
     (Thread/sleep timeout)

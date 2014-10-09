@@ -31,7 +31,10 @@
 (defn start-worker
   "Starts a new worker listening for jobs in the provided queues."
   [palermo queues]
-  (.startWorker palermo (into-array String queues)))
+  (let [queues (if (string? queues)
+                 [queues]
+                 queues)]
+    (.startWorker palermo (into-array String queues))))
 
 (defn workers
   "Returns the list of worker-ids connected to this Palermo instance."
@@ -78,6 +81,11 @@
   "Removes all pending jobs from a Palermo queue."
   [palermo queue]
   (.purgeQueue palermo queue))
+
+(defn disconnect
+  "Closes the Palemo connection to RabbitMQ"
+  [palermo]
+  (.disconnect palermo))
 
 (defmacro defpalermojob [job-name process-form]
   `(deftype ~job-name []
