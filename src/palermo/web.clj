@@ -10,6 +10,7 @@
 
 (def PALERMO (atom nil))
 
+(def PER_PAGE 20)
 
 (defroutes routes
   (GET "/queues" []
@@ -25,10 +26,10 @@
   (PUT "/failures/retry_all" []
        (.retryAllFailedJobs @PALERMO)
        (response/redirect "/failures"))
-  (GET "/failures" []
-       (views/failures @PALERMO))
-  (GET "/queue/:name" [name]
-       (views/queue @PALERMO name))
+  (GET "/failures" [page]
+       (views/failures @PALERMO (Integer/parseInt (or page "0")) PER_PAGE))
+  (GET "/queue/:name" [name page]
+       (views/queue @PALERMO name (Integer/parseInt (or page "0")) PER_PAGE))
   (GET "/" [] (views/index @PALERMO))
   (route/resources "/"))
   

@@ -3,6 +3,28 @@
             [hiccup.form :as f]
             [palermo.worker :as pworker]))
 
+;; helpers
+
+(defn pick-page-content [data per-page page] 
+  (->> data (drop (* per-page page)) (take per-page)))
+
+(defn build-pagination-links [data per-page page f-page f-current]
+  (let [num-pages (/ (count data) per-page)
+        pages (range 0 num-pages)
+        max (last pages)
+        links (map (fn [page-num]
+                     (if (= page-num page)
+                       (f-current page-num)
+                       (f-page page-num :inside)))
+                   pages)
+        links (if (> page 0)
+                (concat [(f-page (dec page) :start)] links)
+                links)
+        links (if (< page max)
+                (concat links [(f-page (inc page) :end)])
+                links)]
+    links))
+
 ;; layout
 
 (defn layout [host port exchange & body]
@@ -72,8 +94,8 @@
        " v0.3.0 (a job processing system built with &#10084;)"]
       [:p
        "Connected to "
-       [:img {:src "images/rabbit.png" :style "width: 15px; margin-top: -8px"}]
-       [:a {:href (str "http://" host ":1" port "/#/exchange/%2F/" exchange)}
+       [:img {:src "/images/rabbit.png" :style "width: 15px; margin-top: -8px"}]
+       [:a {:href (str "http://" host ":1" port "/#/exchanges/%2F/" exchange)}
         (str host ":" port "/" exchange)]]
       ]]]))
 
@@ -86,7 +108,8 @@
    [:table {:class "table table-bordered queues"}
     [:tr 
      [:th "Name"]
-     [:th "Jobs"]]
+     [:th "Pending"]
+     [:th "In Progress"]]
     (let [queues-info (.getQueuesInfo palermo)]
       (map (fn [queue-name]
              (if (not= queue-name "failed")
@@ -95,14 +118,17 @@
                  [:a {:href (str "/queue/" queue-name)}
                   queue-name]]
                 [:td {:class "size"}
-                 (.get (.get queues-info queue-name) "jobs")]]))
+                 (.get (.get queues-info queue-name) "jobs")]
+                [:td {:class "size"}
+                 (.get (.get queues-info queue-name) "processing")]]))
            (.keySet queues-info)))    
      (let [queue-info (.get (.getQueuesInfo palermo) "failed")]
        [:tr {:class "failed first_failure"}
         [:td {:class "queue failed"}
          [:a {:href "/failures"} "failed"]]
         [:td {:class "size"}
-         (if (nil? queue-info) 0 (.get queue-info "jobs"))]])]])
+         (if (nil? queue-info) 0 (.get queue-info "jobs"))]
+        [:td "-"]])]])
 
 (defn working [palermo]
   (let [workers-queues (.getWorkersInfo palermo)
@@ -147,7 +173,7 @@
 
 ;; queue page
 
-(defn queue [palermo queue-name]
+(defn queue [palermo queue-name page per-page]
   (let [host (.get (.show palermo) "host")
         port (.get (.show palermo) "port")
         exchange (.get (.show palermo) "exchange")
@@ -156,6 +182,11 @@
             [:div {:class "container" :id "main"}
              [:h1 "Pending jobs on "
               [:span {:class "hl"} queue-name]]
+             (when (> (.size jobs) 0)
+               (f/form-to [:delete (str "/queues/" queue-name "/purge")]
+                          (f/submit-button {:class "btn btn-danger"
+                                            :data {:confirm "Are you sure you want to clear ALL jobs?"}}
+                                           (str "Clear " (.size jobs) " jobs"))))
              [:p {:class "sub"}
               "Showing "
               [:b (.size jobs)]
@@ -164,33 +195,51 @@
               [:tr
                [:th "Message ID"]
                [:th "Class"]
+               [:th "Arguments"]
                [:th "Serialization"]
                [:th "Created at"]]
-              (map (fn [job]
-                     (let [metadata (.get job "metadata")
-                           headers (.get metadata "headers")
-                           message-id (.get metadata "message-id")
-                           serialization (.get metadata "content-type")
-                           job-class (.toString (.get headers "job-class"))
-                           created-at (java.util.Date. (* 1000 (.get headers "created-at")))
-                           sdf (java.text.SimpleDateFormat. "yyyy-MM-dd HH:mm:ss z")
-                           created-at (.format sdf created-at)]
-                       [:tr
-                        [:td message-id]
-                        [:td job-class]
-                        [:td serialization]
-                        [:td created-at]]))
-                   jobs)
+              (let [jobs-in-page (pick-page-content jobs per-page page)]
+                (map (fn [job]
+                              (let [metadata (.get job "metadata")
+                                    headers (.get metadata "headers")
+                                    message-id (.get metadata "message-id")
+                                    serialization (.get metadata "content-type")
+                                    job-class (.toString (.get headers "job-class"))
+                                    arguments (.toString (.get headers "preview"))
+                                    created-at (java.util.Date. (* 1000 (.get headers "created-at")))
+                                    sdf (java.text.SimpleDateFormat. "yyyy-MM-dd HH:mm:ss z")
+                                    created-at (.format sdf created-at)]
+                                [:tr
+                                 [:td message-id]
+                                 [:td job-class]
+                                 [:td arguments]
+                                 [:td serialization]
+                                 [:td created-at]]))
+                      jobs-in-page)) 
               (when (= (.size jobs) 0)
                 [:tr
                  [:td {:class "no-data" :colspan 2}
                   "There are no pending jobs in this queue"]])
               ]
+             (when (> (.size jobs) per-page)
+               [:p {:class "pagination"}
+                (build-pagination-links jobs per-page page
+                                        (fn [num position]
+                                          (condp = position
+                                            :start [:a {:href (str "/queue/" queue-name "?page=" num)
+                                                        :class "btn less"}
+                                                    "&laquo; less"]
+                                            :end [:a {:href (str "/queue/" queue-name "?page=" num)
+                                                      :class "btn more"}
+                                                  "more &raquo;"]
+                                            [:a {:href (str "/queue/" queue-name "?page=" num)}
+                                             (str "&nbsp;" (inc num) "&nbsp;")]))
+                                        (fn [num] [:b (inc num)]))])
              ])))
 
 ;; failed page
 
-(defn failures [palermo]
+(defn failures [palermo page per-page]
   (let [host (.get (.show palermo) "host")
         port (.get (.show palermo) "port")
         exchange (.get (.show palermo) "exchange")
@@ -213,52 +262,70 @@
               [:b (.size jobs)]
               " jobs"]
              [:ul {:class "failed"}
-              (map (fn [job]
-                     (let [
-                           metadata (.get job "metadata")
-                           headers (.get metadata "headers")
-                           message-id (.get metadata "message-id")
-                           serialization (.get metadata "content-type")
-                           job-class (.toString (.get headers "job-class"))
-                           exception (.toString (.get headers "exception-message"))
-                           backtrace (.toString (.get headers "stack-trace"))
-                           queue (.toString (.get headers "queue"))
-                           failed-at (java.util.Date. (* 1000 (.get headers "created-at")))
-                           created-at (java.util.Date. (* 1000 (.get headers "created-at")))
-                           sdf (java.text.SimpleDateFormat. "yyyy-MM-dd HH:mm:ss z")
-                           created-at (.format sdf created-at)
-                           failed-at (.format sdf failed-at)
-                           retries (.get headers "retries")]
-                       [:li
-                        [:dl
-                         [:div {:style "float:right"}
-                          [:a {:href (str "/retry/" message-id)} "Retry"]]
-                         [:dt "Id"]
-                         [:dd message-id]
-                         [:dt "Queue"]
-                         [:dd queue]
-                         [:dt "Class"]
-                         [:dd [:code job-class]]
-                         [:dt "Serialization"]
-                         [:dd serialization]
-                         [:dt "Created at"]
-                         [:dd created-at]
-                         [:dt "Failed at"]
-                         [:dd failed-at]
-                         [:dt "Retries"]
-                         [:dd retries]
-                         [:dt "Exception"]
-                         [:dd [:code exception]]
-                         [:dt "Error"]
-                         [:dd {:class "Error"}
-                          [:a {:href "#" :class "backtrace"}
-                           (if (> (.length backtrace) 300)
-                             (.substring backtrace 0 300)
-                             backtrace)]
-                          [:pre {:style "display:none"} backtrace]]
-                         ]
-                        [:div {:class "r"}]]))
-                   jobs)]])))
+              (let [jobs-in-page (pick-page-content jobs per-page page)]
+                (map (fn [job]
+                       (let [
+                             metadata (.get job "metadata")
+                             headers (.get metadata "headers")
+                             message-id (.get metadata "message-id")
+                             arguments (.toString (.get headers "preview"))
+                             serialization (.get metadata "content-type")
+                             job-class (.toString (.get headers "job-class"))
+                             exception (.toString (.get headers "exception-message"))
+                             backtrace (.toString (.get headers "stack-trace"))
+                             queue (.toString (.get headers "queue"))
+                             failed-at (java.util.Date. (* 1000 (.get headers "created-at")))
+                             created-at (java.util.Date. (* 1000 (.get headers "created-at")))
+                             sdf (java.text.SimpleDateFormat. "yyyy-MM-dd HH:mm:ss z")
+                             created-at (.format sdf created-at)
+                             failed-at (.format sdf failed-at)
+                             retries (.get headers "retries")]
+                         [:li
+                          [:dl
+                           [:div {:style "float:right"}
+                            [:a {:href (str "/retry/" message-id)} "Retry"]]
+                           [:dt "Id"]
+                           [:dd message-id]
+                           [:dt "Queue"]
+                           [:dd queue]
+                           [:dt "Class"]
+                           [:dd [:code job-class]]
+                           [:dt "Serialization"]
+                           [:dd arguments]
+                           [:dt "Serialization"]
+                           [:dd serialization]
+                           [:dt "Created at"]
+                           [:dd created-at]
+                           [:dt "Failed at"]
+                           [:dd failed-at]
+                           [:dt "Retries"]
+                           [:dd retries]
+                           [:dt "Exception"]
+                           [:dd [:code exception]]
+                           [:dt "Error"]
+                           [:dd {:class "Error"}
+                            [:a {:href "#" :class "backtrace"}
+                             (if (> (.length backtrace) 300)
+                               (.substring backtrace 0 300)
+                               backtrace)]
+                            [:pre {:style "display:none"} backtrace]]
+                           ]
+                          [:div {:class "r"}]]))
+                     jobs-in-page))]
+             (when (> (.size jobs) per-page)
+               [:p {:class "pagination"}
+                (build-pagination-links jobs per-page page
+                                        (fn [num position]
+                                          (condp = position
+                                            :start [:a {:href (str "/failures?page=" num)
+                                                        :class "btn less"}
+                                                    "&laquo; less"]
+                                            :end [:a {:href (str "/failures?page=" num)
+                                                      :class "btn more"}
+                                                  "more &raquo;"]
+                                            [:a {:href (str "/failures?page=" num)}
+                                             (str "&nbsp;" (inc num) "&nbsp;")]))
+                                        (fn [num] [:b (inc num)]))])])))
 
 ;; queues page
 

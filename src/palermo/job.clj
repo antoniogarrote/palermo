@@ -27,3 +27,12 @@
   ([type job-class content key & headers]
      (make-job-message type job-class content 
                        (apply hash-map (cons key headers)))))
+
+(defn preview-content
+  "Returns a string representation of the content of the message"
+  ([job-message]
+     (let [as-string (.toString (:content job-message))
+           as-string (if (> (.length as-string) 100)
+                       (str (.substring as-string 0 100) "...")
+                       as-string)]
+       as-string)))

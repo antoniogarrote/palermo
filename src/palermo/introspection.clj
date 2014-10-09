@@ -10,9 +10,11 @@
         queue-names (for [queue queue-bindings :when (= (:destination_type queue) "queue")] 
                       (:destination queue))]
     (->> (map (fn [queue-name]
-                (let [queue-data (lhttp/get-queue vhost queue-name)]
+                (let [queue-data (lhttp/get-queue vhost queue-name)
+                      pending-acks (:pending_acks (:backing_queue_status queue-data))]
                   [queue-name {:workers (:consumers queue-data)
-                               :jobs (:messages queue-data)}]))
+                               :jobs (- (:messages queue-data) pending-acks)
+                               :processing pending-acks}]))
               queue-names)
          (into {}))))
 
