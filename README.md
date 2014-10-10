@@ -59,12 +59,12 @@ palermo.PalermoServer palermoServer = new palermo.PalermoServer(host, port, exch
 
 ### Defining jobs
 
-Jobs in Palermo are classes with a default constructor and that implement the `palermo.job.PalermoJob` interface.
-The interface defines a single method `process` that will recive the arguments for the job sent to the working queue.
+Jobs in Palermo are classes with a default constructor and implementing the `palermo.job.PalermoJob` interface.
+The interface defines a single method `process` that will recieve the arguments for the job sent to the working queue.
 
 In the following example we will define a job that will just make the worker thread sleep for an interval of time before printing a message on standard output.
 
-In clojure the macro `defpalermojob` can be used to define a Palermo job that will be compiled into the right Java class.
+In Clojure the macro `defpalermojob` can be used to define a Palermo job that needs be compiled into the right Java class.
 
 ```clojure
 (ns palermotests
@@ -85,6 +85,8 @@ package palermotests;
 import palermo.job.PalermoJob;
 
 public class SleepyJob implements PalermoJob {
+
+    public SleepyJob(){}
 
     @Override
     public void process(Object arguments) {
@@ -111,7 +113,7 @@ In order to enqueue a job we need to define a tuple with three components:
 - The queue where the job will be inserted
 - The arguments for the job
 
-The following code show how a jobe can be enqueued in Clojure:
+The following code show how a job can be enqueued in Clojure:
 
 ```clojure
 (let [queue-name "tests"
@@ -132,14 +134,14 @@ palermoServer.enqueue(queueName,
                       timeoutArgument);
 ```
 
-When a job is enqueue, the arguments passed to the `enqueue` function will be serialised and sent to the Palermo job queue.
-When a worker picks the job from the queue, Palermo will deserialise the argument, instantiate the job class and invoke the `process` method of the job passing the deserialised object as the argument in the invokation.
+When a job is enqueued, the arguments passed to the `enqueue` function are serialised and sent to the Palermo job queue.
+When a worker picks the job from the queue, Palermo will deserialise the argument, instantiate the job class and invoke the `process` method of the job passing the deserialised object as the argument in the invocation.
 
-JBoss serialisation is the standard mechanism used by Palermo to serialise and deserialise job arguments. In order for the enqueuing/processing mechanism of Palermo work, certain constraints must be taken into account:
+JBoss serialisation is the standard mechanism used by Palermo to serialise and deserialise job arguments. In order for the enqueuing/processing mechanism of Palermo to work, certain constraints must be taken into account:
 
 - The job class must be available in the class path of the publisher and in the class path of the worker picking the job.
-- Job classes must have a default constructor without argument.
-- Argument objects need to be supported by JBoss serialisation,  basic objects, containers or POJOs with a default constructor are supported.
+- Job classes must have a default constructor without arguments.
+- Argument objects need to be supported by JBoss serialisation, basic objects, containers or POJOs with a default constructor are supported.
 
 
 ### Starting and stopping workers
@@ -175,7 +177,7 @@ for(String workerId : palermoServer.workers())
 
 ### Inspecting queues and workers
 
-Runtime information about the status of the job queues or the connected workers can be accomplished with a small set of Clojure functions and Java methods provided by the Palermo connection.
+Runtime information about the status of the job queues or the connected workers can be obtained with a small set of Clojure functions and Java methods provided by the Palermo connection.
 
 ```clojure
 ; summary information about workers, pending jobs
