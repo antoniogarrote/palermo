@@ -277,7 +277,7 @@ In order for the worker to be able to process the jobs, the jobs class files mus
 
 Palermo includes a web interface that can be used to manage the queues and perform common operations like retrying failed jobs.
 
-![palermo web](https://raw.github.com/antoniogarrote/palermo/Master/docs/images/palermo.png)
+![palermo web](https://raw.githubusercontent.com/antoniogarrote/palermo/master/doc/images/palermo.png)
 
 To start the web frontend a command line utility is provided. These are all the option available to the command line launcher, accessible through the `palermo.cli` class or through the executable jar that is built when invoking `lein uberjar`.
 
@@ -300,7 +300,3 @@ Copyright © 2014 Antonio Garrote
 
 Distributed under the Eclipse Public License either version 1.0 or (at
 your option) any later version.
-
-
-Published under the Eclipse Public License (See the LICENSE file).
-2014 (c) Antonio Garrote <antoniogarrote@gmail.com>
