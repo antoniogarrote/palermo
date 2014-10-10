@@ -15,6 +15,7 @@ features:
 Palermo also includes a web front-end to manage the system  that can
 be run as a standalone Jetty application.
 
+![palermo web](https://raw.githubusercontent.com/antoniogarrote/palermo/master/doc/images/palermo.png)
 
 ## Installation
 
@@ -276,8 +277,6 @@ In order for the worker to be able to process the jobs, the jobs class files mus
 ## Web interface
 
 Palermo includes a web interface that can be used to manage the queues and perform common operations like retrying failed jobs.
-
-![palermo web](https://raw.githubusercontent.com/antoniogarrote/palermo/master/doc/images/palermo.png)
 
 To start the web frontend a command line utility is provided. These are all the option available to the command line launcher, accessible through the `palermo.cli` class or through the executable jar that is built when invoking `lein uberjar`.
 
