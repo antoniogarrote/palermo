@@ -3,6 +3,23 @@
   (:use [palermo.job])
   (:require [palermo.introspection :as pintrospection]))
 
+(defn- to-clojure-nested-hashes
+  "Transforms a collection of nested Java java.util.HashMaps into Clojure maps"
+  [m]
+  (println "HEY!!!")
+  (let [mapped (map (fn [[k,v]] 
+                      (do
+                        (if (= (class v) java.util.HashMap)
+                          [k (clojure.walk/keywordize-keys (to-clojure-nested-hashes v))]
+                          (if (= (class v) java.util.ArrayList)
+                            [k (into [] (map #(if (= (class %) java.util.HashMap)
+                                                (to-clojure-nested-hashes %)
+                                                %) 
+                                             v))]
+                            [k v]))))
+                    (into {} m))]
+    (clojure.walk/keywordize-keys (into {} mapped))))
+
 (defn palermo
   "Creates a new Palermo instance.
    Possible options are host, port, vhost, username, password and exchange."
@@ -65,7 +82,7 @@
 (defn jobs-in-queue
   "Retrieves information about the jobs in a Palermo queue."
   [palermo queue]
-  (.getQueueJobs palermo queue))
+  (map to-clojure-nested-hashes (.getQueueJobs palermo queue)))
 
 (defn retry-failed-job
   "Retries the failed job whose message-id is provided."

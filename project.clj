@@ -1,4 +1,4 @@
-(defproject palermo "0.3.4-SNAPSHOT"
+(defproject palermo "0.3.5-SNAPSHOT"
   :description "Palermo, a job processing system built with love"
   :license {:name "Eclipse Public License"
             :url "http://www.eclipse.org/legal/epl-v10.html"}

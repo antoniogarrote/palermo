@@ -37,7 +37,10 @@
                         (if (map? v)
                           [k (to-java-nested-hashes (clojure.walk/stringify-keys v))]
                           (if (coll? v)
-                            [k (java.util.ArrayList. (map to-java-nested-hashes v))]
+                            [k (java.util.ArrayList. (map #(if (map? %)
+                                                             (to-java-nested-hashes %)
+                                                             %) 
+                                                          v))]
                             [k v]))))
                     m)]
     (java.util.HashMap. (apply hash-map (apply concat mapped)))))

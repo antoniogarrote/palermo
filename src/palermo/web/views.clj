@@ -290,7 +290,7 @@
                            [:dd queue]
                            [:dt "Class"]
                            [:dd [:code job-class]]
-                           [:dt "Serialization"]
+                           [:dt "Arguments"]
                            [:dd arguments]
                            [:dt "Serialization"]
                            [:dd serialization]
