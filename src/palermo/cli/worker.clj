@@ -24,6 +24,7 @@
         queues  (.split (value-for cmd "queues"), ",")
         ;threads (Integer/parseInt (value-for cmd "threads")) 
         palermo (new PalermoServer host port username password exchange vhost)]
+    (println (.replace (str "[" (java.util.Date.) "] Starting Palermo worker at " username ":" password "@" host ":" port "/" vhost  exchange "...") "//" "/"))
     (.startWorker palermo queues)))
 
 

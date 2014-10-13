@@ -76,6 +76,32 @@ In Clojure the macro `defpalermojob` can be used to define a Palermo job that ne
     (Thread/sleep timeout)
     (println "BACK!")))
 ```
+The defpalermojob macro generates a new Java class using the provided name when compile. It must be taken into account that namespaces are not loaded in the code of the generated Java class, so they must be loaded inside the code of the class. For instance, in the following example job that uses MongoDB to save a timestamp, the body of the job class must require explicitely the Clojure namespace in order for the MongoDB functions to be correctly bound. Wihtout that line, `java.lang.IllegalStateException: Attempting to call unbound fn` errors will be generated.
+
+```clojure
+(ns lampedusa.jobs
+  (:use [palermo.core]
+        [somnium.congomongo]))
+
+(def conn
+  (make-connection "lampedusa"
+                   :host "127.0.0.1"
+                   :port 27017))
+
+(defpalermojob LampedusaClojureJob
+  (process [j arg]
+
+           ; requiring the Clojure namespace
+           (require 'lampedusa.jobs) 
+
+           (let [local conn
+                 now (java.util.Date.)
+                 sdf (java.text.SimpleDateFormat. "yyyy-MM-dd'T'HH:mm'Z'")]
+             (with-mongo local
+               (insert! :times {:iso8601 (.format sdf now)
+                                :unix (* (.getTime now) 1000)
+                                :date now})))))
+```
 
 The following code is the equivalent Java implementation. It is important to define a default constructor without arguments for Palermo to instantiate the job class correctly.
 
