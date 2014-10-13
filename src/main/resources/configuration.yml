@@ -1,0 +1,10 @@
+development:
+  mongo:
+    port: 27017
+    host: localhost
+    database: lampedusa
+    collection: times
+  palermo:
+    host: localhost
+    port: 5672
+    exchange: palermo
