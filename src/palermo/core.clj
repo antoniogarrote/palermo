@@ -1,5 +1,6 @@
 (ns palermo.core
-  (:import [palermo PalermoServer])
+  (:import [palermo PalermoServer]
+           [palermo.job PalermoJob])
   (:use [palermo.job])
   (:require [palermo.introspection :as pintrospection]))
 

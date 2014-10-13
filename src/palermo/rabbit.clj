@@ -114,7 +114,9 @@
                                                  headers
                                                  (assoc headers :id message-id))
                                        serialiser (pserialisation/make-serialiser media-type)
-                                       content (pserialisation/read-data serialiser payload)
+                                       content (if (nil? payload)
+                                                 nil
+                                                 (pserialisation/read-data serialiser payload))
                                        job-message (pjob/make-job-message media-type job-class 
                                                                           content headers)]
                                    (handler job-message))

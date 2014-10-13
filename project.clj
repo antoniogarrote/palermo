@@ -1,8 +1,9 @@
-(defproject palermo "0.3.5-SNAPSHOT"
+(defproject palermo "0.3.6-SNAPSHOT"
   :description "Palermo, a job processing system built with love"
   :license {:name "Eclipse Public License"
             :url "http://www.eclipse.org/legal/epl-v10.html"}
 
+  :java-source-paths ["src/java"]
   :javac-options     ["-target" "1.6" "-source" "1.6"]
 
   :dependencies [[org.clojure/clojure "1.6.0"]

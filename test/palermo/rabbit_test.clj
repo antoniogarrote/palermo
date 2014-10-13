@@ -1,4 +1,5 @@
 (ns palermo.rabbit_test
+  [:import [palermo.job PalermoJob]]
   (:require [clojure.test :refer :all]
             [langohr.exchange :as lexchange]
             [langohr.queue :as lqueue]

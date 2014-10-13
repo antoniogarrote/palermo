@@ -89,7 +89,7 @@ public class SleepyJob implements PalermoJob {
     public SleepyJob(){}
 
     @Override
-    public void process(Object arguments) {
+    public void process(Object arguments) throws Exception {
         int timeout = (Integer) arguments;
         System.out.println("SLEEPING...");
         try {

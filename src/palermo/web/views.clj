@@ -91,7 +91,7 @@
       [:p 
        "Powered by "
        [:a {:href "http://github.com/antoniogarrote/palermo"} "Palermo"]
-       " v0.3.4 (a job processing system built with &#10084;)"]
+       " v0.3.6 (a job processing system built with &#10084;)"]
       [:p
        "Connected to "
        [:img {:src "/images/rabbit.png" :style "width: 15px; margin-top: -8px"}]
@@ -274,7 +274,7 @@
                              exception (.toString (.get headers "exception-message"))
                              backtrace (.toString (.get headers "stack-trace"))
                              queue (.toString (.get headers "queue"))
-                             failed-at (java.util.Date. (* 1000 (.get headers "created-at")))
+                             failed-at (java.util.Date. (* 1000 (.get headers "failed-at")))
                              created-at (java.util.Date. (* 1000 (.get headers "created-at")))
                              sdf (java.text.SimpleDateFormat. "yyyy-MM-dd HH:mm:ss z")
                              created-at (.format sdf created-at)

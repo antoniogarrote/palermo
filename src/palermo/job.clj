@@ -1,8 +1,9 @@
-(ns palermo.job)
+(ns palermo.job
+  (:import [palermo.job PalermoJob]))
 
-(definterface PalermoJob
-  (^void process [^Object args] 
-         "Processing logic for the job receiving the incoming arguments"))
+;(definterface PalermoJob
+;  (^void process [^Object args] 
+;         "Processing logic for the job receiving the incoming arguments"))
 
 
 (defn unix-timestamp
@@ -31,8 +32,10 @@
 (defn preview-content
   "Returns a string representation of the content of the message"
   ([job-message]
-     (let [as-string (.toString (:content job-message))
-           as-string (if (> (.length as-string) 100)
-                       (str (.substring as-string 0 100) "...")
-                       as-string)]
-       as-string)))
+     (if (nil? (:content job-message))
+       "null"
+       (let [as-string (.toString (:content job-message))
+             as-string (if (> (.length as-string) 100)
+                         (str (.substring as-string 0 100) "...")
+                         as-string)]
+         as-string))))
