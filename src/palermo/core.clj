@@ -7,7 +7,6 @@
 (defn- to-clojure-nested-hashes
   "Transforms a collection of nested Java java.util.HashMaps into Clojure maps"
   [m]
-  (println "HEY!!!")
   (let [mapped (map (fn [[k,v]] 
                       (do
                         (if (= (class v) java.util.HashMap)
